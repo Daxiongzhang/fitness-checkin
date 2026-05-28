@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>健身打卡</title>
+<style>
+:root {
+  --green: #3DAA6B;
+  --green-light: #E8F5EE;
+  --green-mid: #B3DFC4;
+  --blue: #2B7FD4;
+  --blue-light: #E6F1FB;
+  --orange: #E67E22;
+  --orange-light: #FEF4E8;
+  --bg: #F6F7F9;
+  --surface: #FFFFFF;
+  --border: rgba(0,0,0,0.08);
+  --border-mid: rgba(0,0,0,0.13);
+  --text-1: #1A1A1A;
+  --text-2: #555;
+  --text-3: #999;
+  --radius: 14px;
+  --radius-sm: 9px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { font-size: 15px; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  min-height: 100vh;
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+/* ── 顶部 Banner ─────────────────────────────── */
+.banner {
+  background: var(--green);
+  padding: 28px 20px 24px;
+  padding-top: calc(28px + env(safe-area-inset-top, 0px));
+  color: #fff;
+}
+.banner-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+}
+.banner-sub {
+  font-size: 13px;
+  opacity: 0.78;
+  margin-bottom: 18px;
+}
+
+/* ── 进度条 ───────────────────────────────────── */
+.progress-wrap {
+  background: rgba(255,255,255,0.22);
+  border-radius: 8px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.progress-fill {
+  background: #fff;
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.4s cubic-bezier(.4,0,.2,1);
+  min-width: 0;
+}
+.progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+/* ── 快速跳转 ─────────────────────────────────── */
+.quick-bar {
+  display: flex;
+  gap: 8px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.quick-bar::-webkit-scrollbar { display: none; }
+.quick-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--green);
+  background: var(--green-light);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+.quick-btn:active { background: var(--green-mid); }
+
+/* ── 图例 ─────────────────────────────────────── */
+.legend-bar {
+  display: flex;
+  gap: 16px;
+  padding: 10px 16px;
+  background: var(--bg);
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── 日卡片 ───────────────────────────────────── */
+.days-list { padding: 12px 12px 8px; display: flex; flex-direction: column; gap: 8px; }
+
+.day-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.day-card.today { border-color: var(--green); }
+
+.day-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.day-header:active { background: rgba(0,0,0,0.025); }
+
+.day-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.day-card.today .day-badge {
+  background: var(--green);
+  color: #fff;
+}
+.day-card.rest .day-badge { background: #f0f0f0; }
+
+.day-info { flex: 1; min-width: 0; }
+.day-title { font-size: 15px; font-weight: 600; color: var(--text-1); }
+.day-desc { font-size: 12px; color: var(--text-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.day-status {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.day-pct {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+  min-width: 28px;
+  text-align: right;
+}
+.day-pct.zero { color: var(--text-3); }
+.day-arrow {
+  display: flex;
+  align-items: center;
+  transition: transform 0.22s;
+  color: var(--text-3);
+}
+.day-card.open .day-arrow { transform: rotate(180deg); }
+
+/* ── 卡片内容 ─────────────────────────────────── */
+.day-body { display: none; padding: 0 12px 14px; }
+.day-card.open .day-body { display: block; }
+.day-body-inner { border-top: 1px solid var(--border); padding-top: 12px; }
+
+/* 热身提示 */
+.prep-section {
+  background: var(--orange-light);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.prep-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--orange);
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.prep-links { display: flex; gap: 6px; flex-wrap: wrap; }
+.prep-link {
+  font-size: 11.5px;
+  color: var(--orange);
+  background: #fff;
+  border: 1px solid rgba(230,126,34,0.3);
+  padding: 3px 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.prep-link:active { background: rgba(230,126,34,0.1); }
+
+/* 肌肉分组 */
+.muscle-group { margin-bottom: 10px; }
+.muscle-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  padding: 0 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.muscle-label::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 13px;
+  background: var(--green);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.muscle-group.cardio .muscle-label::before { background: var(--blue); }
+
+/* 动作行 */
+.exercise-item {
+  display: flex;
+  align-items: center;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 2px;
+  transition: background 0.15s;
+  gap: 10px;
+}
+.exercise-item:active { background: rgba(0,0,0,0.03); }
+
+.exercise-item input[type=checkbox] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--green);
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+
+.exercise-info { flex: 1; min-width: 0; }
+.exercise-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-1);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.exercise-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+.exercise-detail { font-size: 11.5px; color: var(--text-3); }
+.exercise-warn {
+  font-size: 11px;
+  color: var(--orange);
+  background: var(--orange-light);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.vid-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--blue);
+  background: var(--blue-light);
+  border: none;
+  padding: 5px 11px;
+  border-radius: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+.vid-btn:active { background: #c8dfef; }
+
+/* 完成态 */
+.exercise-item.done .exercise-name { text-decoration: line-through; color: var(--text-3); }
+.exercise-item.done .exercise-detail { color: #ccc; }
+.exercise-item.done .exercise-warn { opacity: 0.4; }
+.exercise-item.done .vid-btn { opacity: 0.7; }
+
+/* 有氧块 */
+.cardio-wrap {
+  background: var(--blue-light);
+  border-radius: var(--radius-sm);
+}
+.cardio-wrap .exercise-name { color: var(--blue); }
+
+/* 休息日 */
+.rest-card {
+  text-align: center;
+  padding: 24px 0 20px;
+  color: var(--text-3);
+  font-size: 14px;
+}
+.rest-icon { margin-bottom: 8px; color: var(--text-3); display: flex; align-items: center; justify-content: center; }
+.rest-text { font-size: 14px; color: var(--text-3); }
+
+/* ── 底部操作 ─────────────────────────────────── */
+.bottom-bar {
+  padding: 16px 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+}
+.reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border-mid);
+  background: var(--surface);
+  color: var(--text-3);
+  font-size: 13px;
+  padding: 9px 24px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.reset-btn:hover { border-color: #e74c3c; color: #e74c3c; }
+
+/* ── 周历 ─────────────────────────────────────── */
+.week-calendar {
+  display: flex;
+  gap: 6px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  justify-content: space-between;
+}
+.cal-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+  min-width: 0;
+}
+.cal-cell:active { background: rgba(0,0,0,0.03); }
+.cal-label {
+  font-size: 10px;
+  color: var(--text-3);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+.cal-date {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-1);
+  background: var(--bg);
+  transition: all 0.2s;
+}
+.cal-desc {
+  font-size: 10px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  text-align: center;
+}
+
+/* 状态：已完成 */
+.cal-cell.completed .cal-date {
+  background: var(--green);
+  color: #fff;
+}
+.cal-cell.completed .cal-label { color: var(--green); font-weight: 600; }
+
+/* 状态：休息日 */
+.cal-cell.rest .cal-date {
+  background: #ebebeb;
+  color: var(--text-3);
+}
+.cal-cell.rest .cal-label { color: var(--text-3); }
+.cal-cell.rest .cal-desc { color: var(--text-3); }
+
+/* 状态：未打卡（已过去的训练日） */
+.cal-cell.missed .cal-date {
+  background: #fff;
+  color: var(--text-3);
+  border: 1.5px dashed var(--border-mid);
+}
+.cal-cell.missed .cal-label { color: var(--text-3); }
+
+/* 状态：未来 */
+.cal-cell.future .cal-label { color: #ccc; }
+.cal-cell.future .cal-date { background: transparent; color: #ccc; }
+.cal-cell.future .cal-desc { color: #ccc; }
+
+/* 今天标记 */
+.cal-cell.today .cal-date {
+  box-shadow: 0 0 0 2px var(--green), 0 0 0 4px rgba(61,170,107,0.15);
+}
+.cal-cell.today.completed .cal-date {
+  box-shadow: 0 0 0 2px var(--green), 0 0 0 4px rgba(61,170,107,0.25);
+}
+.cal-cell.today.missed .cal-date {
+  box-shadow: 0 0 0 2px #e74c3c, 0 0 0 4px rgba(231,76,60,0.12);
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+/* 等级切换 */
+.level-switch{display:flex;gap:4px;margin-top:8px;justify-content:center}
+.level-btn{padding:4px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:rgba(255,255,255,.55);font-size:12px;cursor:pointer;transition:all .2s;font-weight:500}
+.level-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 12px rgba(59,130,246,.35)}
+.level-btn:hover:not(.active){background:rgba(255,255,255,.12);color:rgba(255,255,255,.8)}
+.level-note{font-size:10px;color:rgba(255,255,255,.3);text-align:center;margin-top:6px}
+</style>
+</head>
+<body>
+
+<!-- 顶部 Banner -->
+<div class="banner">
+  <div class="banner-title" style="display:flex;align-items:center;gap:8px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 0"/><path d="m6.5 17.5 11 0"/><rect x="2" y="8" width="4.5" height="8" rx="1"/><rect x="17.5" y="8" width="4.5" height="8" rx="1"/><path d="M6.5 8v8"/><path d="M17.5 8v8"/></svg>健身打卡</div>
+  <div class="banner-sub">王严健身系统 · 初级计划（全身训练）</div>
+  <div class="level-switch">
+    <button class="level-btn active" onclick="switchLevel('primary')">初级</button>
+    <button class="level-btn" onclick="switchLevel('intermediate')">中级</button>
+    <button class="level-btn" onclick="switchLevel('advanced')">高级</button>
+  </div>
+  <div class="level-note" id="levelNote">全身训练 · 隔天练一休一</div>
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progressBar" style="width:0%"></div>
+  </div>
+  <div class="progress-row">
+    <span id="progressText">今日完成 0/0</span>
+    <span id="progressPct">0%</span>
+  </div>
+</div>
+
+<!-- 周历 -->
+<div class="week-calendar" id="weekCal"></div>
+
+<!-- 快速跳转 -->
+<div class="quick-bar">
+  <button class="quick-btn" onclick="openVideo('warmup')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>热身教学</button>
+  <button class="quick-btn" onclick="openVideo('stretch_upper')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M6 20l4-8 2 2 2-2 4 8"/><path d="M4 10h16"/></svg>上肢拉伸</button>
+  <button class="quick-btn" onclick="openVideo('stretch_lower')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M12 6v6"/><path d="M8 12l4 2 4-2"/><path d="M7 20l5-6 5 6"/></svg>下肢拉伸</button>
+  <button class="quick-btn" onclick="openVideo('foam_roller')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="5" rx="2.5"/><path d="M12 11v3"/><path d="M8 14h8"/><path d="M9 14v3"/><path d="M15 14v3"/></svg>泡沫轴放松</button>
+</div>
+
+<!-- 图例 -->
+<div class="legend-bar">
+  <div class="legend-item" style="gap:4px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>动作教学</div>
+  <div class="legend-item" style="gap:4px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.29 3.86 1.42 1.42m4.24 4.24 1.42 1.42M12 12l1.42 1.42"/><path d="m4.7 4.7 1.42 1.42"/><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>右腿保护</div>
+  <div class="legend-item" style="gap:4px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c2-3 5-5 10-5s8 2 10 5c-2 3-5 5-10 5s-8-2-10-5Z"/><circle cx="12" cy="12" r="3"/></svg>游泳有氧</div>
+</div>
+
+<!-- 日程列表 -->
+<div class="days-list" id="days"></div>
+
+<!-- 底部按钮 -->
+<div class="bottom-bar">
+  <button class="reset-btn" onclick="resetAll()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M16 16h5v5"/></svg>重置本周打卡</button>
+</div>
+
+<script>
+const VIDEO = {
+  warmup:         'warmup.m4v',
+  stretch_upper:  'stretch_upper.m4v',
+  stretch_lower:  'stretch_lower.m4v',
+  foam_roller:    'foam_roller.m4v',
+  chest_flat:     'wy_chest_flat.m4v',
+  chest_incline:  'chest_incline.m4v',
+  back_pullup:    'back_pullup.m4v',
+  back_row:       'wy_back_row.m4v',
+  back_pulldown:  'back_pulldown.m4v',
+  back_seated_row:'back_seated_row.m4v',
+  shoulder_press: 'shoulder_press.m4v',
+  shoulder_raise: 'wy_shoulder_raise.m4v',
+  tricep_pushdown:'wy_tricep_pushdown.m4v',
+  bicep_curl:     'wy_bicep_curl.m4v',
+  bicep_hammer:   'bicep_hammer.m4v',
+  quad_legpress:  'quad_legpress.m4v',
+  quad_ext:       'quad_legpress.m4v',
+  ham_curl:       'ham_curl.m4v',
+  glute_bridge:   'glute_bridge.m4v',
+  calf_raise:     'calf_raise.m4v',
+  abs_crunch:     'abs_crunch.m4v',
+  abs_vup:        '元宝收腹.m4v',
+  abs_legraise:   '悬垂举腿.m4v',
+  chest_fly:      'wy_chest_fly.m4v',
+  shoulder_fly:   'shoulder_fly.m4v',
+  bicep_3way:     'bicep_3way.m4v',
+  bicep_barbell:  'wy_bicep_barbell.m4v',
+  tricep_kickback:'tricep_kickback.m4v',
+  trap_shrug:     'trap_shrug.m4v',
+  back_ext:       'back_ext.m4v',
+  back_twist:     'back_twist.m4v',
+};
+
+const PLANS = {
+primary: {
+  label: '王严健身系统 · 初级计划（全身训练）',
+  note: '全身训练 · 隔天练一休一',
+  0:{title:'全身训练日', groups:[
+    {muscle:'胸', items:[{name:'上斜哑铃推', detail:'2×30/25', vid:'chest_incline'}]},
+    {muscle:'肱二头肌', items:[{name:'斜凳哑铃弯举', detail:'2×30/25', vid:'bicep_hammer'}]},
+    {muscle:'股四头肌', items:[{name:'坐姿腿屈伸', detail:'2×30/25', vid:'quad_ext', warn:'右腿重量减半'}]},
+    {muscle:'臀肌', items:[{name:'臀桥', detail:'2×30/25', vid:'glute_bridge', warn:'单腿左腿为主'}]},
+    {muscle:'腘绳肌', items:[{name:'俯卧腿弯举', detail:'2×30/25', vid:'ham_curl'}]},
+    {muscle:'背阔肌', items:[{name:'钢线下拉', detail:'2×30/25', vid:'back_pulldown'},{name:'钢线坐姿划船', detail:'2×30/25', vid:'back_seated_row'}]},
+    {muscle:'三角肌', items:[{name:'立式侧上举', detail:'2×20/20', vid:'shoulder_raise'}]},
+    {muscle:'肱三头肌', items:[{name:'绳索臂屈伸', detail:'2×30/25', vid:'tricep_pushdown'}]},
+    {muscle:'小腿', items:[{name:'坐姿提踵', detail:'2×30/25', vid:'calf_raise'}]},
+    {muscle:'竖脊肌', items:[{name:'山羊挺身', detail:'2×30/25', vid:'back_ext'}]},
+    {muscle:'腹肌', items:[{name:'卷腹', detail:'2×20/20', vid:'abs_crunch'}]}
+  ], cardio:{name:'游泳', detail:'30-40分钟 蛙泳为主'}, prep:['warmup','stretch_upper','stretch_lower','foam_roller']},
+  1:{title:'休息日', rest:true},
+  2:{title:'全身训练日', groups:[
+    {muscle:'胸', items:[{name:'上斜哑铃推', detail:'2×30/25', vid:'chest_incline'}]},
+    {muscle:'肱二头肌', items:[{name:'斜凳哑铃弯举', detail:'2×30/25', vid:'bicep_hammer'}]},
+    {muscle:'股四头肌', items:[{name:'坐姿腿屈伸', detail:'2×30/25', vid:'quad_ext', warn:'右腿重量减半'}]},
+    {muscle:'臀肌', items:[{name:'臀桥', detail:'2×30/25', vid:'glute_bridge', warn:'单腿左腿为主'}]},
+    {muscle:'腘绳肌', items:[{name:'俯卧腿弯举', detail:'2×30/25', vid:'ham_curl'}]},
+    {muscle:'背阔肌', items:[{name:'钢线下拉', detail:'2×30/25', vid:'back_pulldown'},{name:'钢线坐姿划船', detail:'2×30/25', vid:'back_seated_row'}]},
+    {muscle:'三角肌', items:[{name:'立式侧上举', detail:'2×20/20', vid:'shoulder_raise'}]},
+    {muscle:'肱三头肌', items:[{name:'绳索臂屈伸', detail:'2×30/25', vid:'tricep_pushdown'}]},
+    {muscle:'小腿', items:[{name:'坐姿提踵', detail:'2×30/25', vid:'calf_raise'}]},
+    {muscle:'竖脊肌', items:[{name:'山羊挺身', detail:'2×30/25', vid:'back_ext'}]},
+    {muscle:'腹肌', items:[{name:'卷腹', detail:'2×20/20', vid:'abs_crunch'}]}
+  ], cardio:{name:'游泳', detail:'30-40分钟 蛙泳为主'}, prep:['warmup','stretch_upper','stretch_lower','foam_roller']},
+  3:{title:'休息日', rest:true},
+  4:{title:'全身训练日', groups:[
+    {muscle:'胸', items:[{name:'上斜哑铃推', detail:'2×30/25', vid:'chest_incline'}]},
+    {muscle:'肱二头肌', items:[{name:'斜凳哑铃弯举', detail:'2×30/25', vid:'bicep_hammer'}]},
+    {muscle:'股四头肌', items:[{name:'坐姿腿屈伸', detail:'2×30/25', vid:'quad_ext', warn:'右腿重量减半'}]},
+    {muscle:'臀肌', items:[{name:'臀桥', detail:'2×30/25', vid:'glute_bridge', warn:'单腿左腿为主'}]},
+    {muscle:'腘绳肌', items:[{name:'俯卧腿弯举', detail:'2×30/25', vid:'ham_curl'}]},
+    {muscle:'背阔肌', items:[{name:'钢线下拉', detail:'2×30/25', vid:'back_pulldown'},{name:'钢线坐姿划船', detail:'2×30/25', vid:'back_seated_row'}]},
+    {muscle:'三角肌', items:[{name:'立式侧上举', detail:'2×20/20', vid:'shoulder_raise'}]},
+    {muscle:'肱三头肌', items:[{name:'绳索臂屈伸', detail:'2×30/25', vid:'tricep_pushdown'}]},
+    {muscle:'小腿', items:[{name:'坐姿提踵', detail:'2×30/25', vid:'calf_raise'}]},
+    {muscle:'竖脊肌', items:[{name:'山羊挺身', detail:'2×30/25', vid:'back_ext'}]},
+    {muscle:'腹肌', items:[{name:'卷腹', detail:'2×20/20', vid:'abs_crunch'}]}
+  ], cardio:{name:'游泳', detail:'30-40分钟 蛙泳为主'}, prep:['warmup','stretch_upper','stretch_lower','foam_roller']},
+  5:{title:'休息日', rest:true},
+  6:{title:'全身训练日', groups:[
+    {muscle:'胸', items:[{name:'上斜哑铃推', detail:'2×30/25', vid:'chest_incline'}]},
+    {muscle:'肱二头肌', items:[{name:'斜凳哑铃弯举', detail:'2×30/25', vid:'bicep_hammer'}]},
+    {muscle:'股四头肌', items:[{name:'坐姿腿屈伸', detail:'2×30/25', vid:'quad_ext', warn:'右腿重量减半'}]},
+    {muscle:'臀肌', items:[{name:'臀桥', detail:'2×30/25', vid:'glute_bridge', warn:'单腿左腿为主'}]},
+    {muscle:'腘绳肌', items:[{name:'俯卧腿弯举', detail:'2×30/25', vid:'ham_curl'}]},
+    {muscle:'背阔肌', items:[{name:'钢线下拉', detail:'2×30/25', vid:'back_pulldown'},{name:'钢线坐姿划船', detail:'2×30/25', vid:'back_seated_row'}]},
+    {muscle:'三角肌', items:[{name:'立式侧上举', detail:'2×20/20', vid:'shoulder_raise'}]},
+    {muscle:'肱三头肌', items:[{name:'绳索臂屈伸', detail:'2×30/25', vid:'tricep_pushdown'}]},
+    {muscle:'小腿', items:[{name:'坐姿提踵', detail:'2×30/25', vid:'calf_raise'}]},
+    {muscle:'竖脊肌', items:[{name:'山羊挺身', detail:'2×30/25', vid:'back_ext'}]},
+    {muscle:'腹肌', items:[{name:'卷腹', detail:'2×20/20', vid:'abs_crunch'}]}
+  ], cardio:{name:'游泳', detail:'30-40分钟 蛙泳为主'}, prep:['warmup','stretch_upper','stretch_lower','foam_roller']}
+},
+
+intermediate: {
+  label: '王严健身系统 · 中级计划（两分化 A/B）',
+  note: '两分化 A/B 交替 · 隔天练',
+  0:{title:'A：上肢前侧+背部+斜方+腹', groups:[
+    {muscle:'胸大肌', items:[
+      {name:'杠铃平推', detail:'3×30/25/20', vid:'chest_flat'},
+      {name:'上斜哑铃推', detail:'3×30/25/20', vid:'chest_incline'},
+      {name:'屈体哑铃夹胸', detail:'2×力竭', vid:'chest_fly'}
+    ]},
+    {muscle:'肱二头肌', items:[
+      {name:'三面弯举', detail:'3×30/25/20', vid:'bicep_3way'},
+      {name:'哑铃单臂弯举', detail:'2×力竭', vid:'bicep_curl'}
+    ]},
+    {muscle:'斜方肌', items:[
+      {name:'屈体哑铃缩肩', detail:'3×30/25/20', vid:'trap_shrug'}
+    ]},
+    {muscle:'背阔肌', items:[
+      {name:'宽握引体（辅助）', detail:'3×力竭', vid:'back_pullup'},
+      {name:'屈体哑铃划船', detail:'3×30/25/20', vid:'back_row'}
+    ]},
+    {muscle:'竖脊肌', items:[
+      {name:'山羊挺身', detail:'3×30/25/20', vid:'back_ext'}
+    ]},
+    {muscle:'腹肌', items:[
+      {name:'元宝收腹', detail:'3×20/20/20', vid:'abs_vup'}
+    ]}
+  ], cardio:{name:'游泳', detail:'30-40分钟'}, prep:['warmup','stretch_upper','foam_roller']},
+  1:{title:'休息日', rest:true},
+  2:{title:'B：下肢+三角肌+肱三头肌', groups:[
+    {muscle:'股四头肌', items:[
+      {name:'腿举机', detail:'3×30/25/20', vid:'quad_legpress', warn:'轻重量，注意右腿发力均匀'},
+      {name:'坐姿腿屈伸', detail:'3×30/25/20', vid:'quad_ext', warn:'右腿重量减半'}
+    ]},
+    {muscle:'臀肌', items:[
+      {name:'臀桥', detail:'3×30/25/20', vid:'glute_bridge', warn:'单腿左腿为主'}
+    ]},
+    {muscle:'腘绳肌', items:[
+      {name:'俯卧腿弯举', detail:'3×30/25/20', vid:'ham_curl'}
+    ]},
+    {muscle:'小腿', items:[
+      {name:'坐姿提踵', detail:'3×30/25/20', vid:'calf_raise'}
+    ]},
+    {muscle:'三角肌', items:[
+      {name:'史密斯肩上推举', detail:'3×30/25/20', vid:'shoulder_press'},
+      {name:'立式侧上举', detail:'3×20/20/20', vid:'shoulder_raise'},
+      {name:'三面飞鸟', detail:'2×力竭', vid:'shoulder_fly'}
+    ]},
+    {muscle:'肱三头肌', items:[
+      {name:'绳索臂屈伸', detail:'3×30/25/20', vid:'tricep_pushdown'},
+      {name:'屈体哑铃单臂屈伸', detail:'2×力竭', vid:'tricep_kickback'}
+    ]}
+  ], cardio:{name:'游泳', detail:'30-40分钟'}, prep:['warmup','stretch_lower','foam_roller']},
+  3:{title:'休息日', rest:true},
+  4:{title:'A：上肢前侧+背部+斜方+腹', groups:[
+    {muscle:'胸大肌', items:[
+      {name:'杠铃平推', detail:'3×30/25/20', vid:'chest_flat'},
+      {name:'上斜哑铃推', detail:'3×30/25/20', vid:'chest_incline'},
+      {name:'屈体哑铃夹胸', detail:'2×力竭', vid:'chest_fly'}
+    ]},
+    {muscle:'肱二头肌', items:[
+      {name:'三面弯举', detail:'3×30/25/20', vid:'bicep_3way'},
+      {name:'哑铃单臂弯举', detail:'2×力竭', vid:'bicep_curl'}
+    ]},
+    {muscle:'斜方肌', items:[
+      {name:'屈体哑铃缩肩', detail:'3×30/25/20', vid:'trap_shrug'}
+    ]},
+    {muscle:'背阔肌', items:[
+      {name:'宽握引体（辅助）', detail:'3×力竭', vid:'back_pullup'},
+      {name:'屈体哑铃划船', detail:'3×30/25/20', vid:'back_row'}
+    ]},
+    {muscle:'竖脊肌', items:[
+      {name:'山羊挺身', detail:'3×30/25/20', vid:'back_ext'}
+    ]},
+    {muscle:'腹肌', items:[
+      {name:'元宝收腹', detail:'3×20/20/20', vid:'abs_vup'}
+    ]}
+  ], cardio:{name:'游泳', detail:'30-40分钟'}, prep:['warmup','stretch_upper','foam_roller']},
+  5:{title:'休息日', rest:true},
+  6:{title:'B：下肢+三角肌+肱三头肌', groups:[
+    {muscle:'股四头肌', items:[
+      {name:'腿举机', detail:'3×30/25/20', vid:'quad_legpress', warn:'轻重量，注意右腿发力均匀'},
+      {name:'坐姿腿屈伸', detail:'3×30/25/20', vid:'quad_ext', warn:'右腿重量减半'}
+    ]},
+    {muscle:'臀肌', items:[
+      {name:'臀桥', detail:'3×30/25/20', vid:'glute_bridge', warn:'单腿左腿为主'}
+    ]},
+    {muscle:'腘绳肌', items:[
+      {name:'俯卧腿弯举', detail:'3×30/25/20', vid:'ham_curl'}
+    ]},
+    {muscle:'小腿', items:[
+      {name:'坐姿提踵', detail:'3×30/25/20', vid:'calf_raise'}
+    ]},
+    {muscle:'三角肌', items:[
+      {name:'史密斯肩上推举', detail:'3×30/25/20', vid:'shoulder_press'},
+      {name:'立式侧上举', detail:'3×20/20/20', vid:'shoulder_raise'},
+      {name:'三面飞鸟', detail:'2×力竭', vid:'shoulder_fly'}
+    ]},
+    {muscle:'肱三头肌', items:[
+      {name:'绳索臂屈伸', detail:'3×30/25/20', vid:'tricep_pushdown'},
+      {name:'屈体哑铃单臂屈伸', detail:'2×力竭', vid:'tricep_kickback'}
+    ]}
+  ], cardio:{name:'游泳', detail:'30-40分钟'}, prep:['warmup','stretch_lower','foam_roller']}
+},
+
+advanced: {
+  label: '王严健身系统 · 高级计划（三分化 A/B/C）',
+  note: '三分化 A/B/C 循环 · 每周两轮',
+  0:{title:'A：胸+肱二头肌+斜方+背+竖脊+腹', groups:[
+    {muscle:'胸大肌', items:[
+      {name:'杠铃平推', detail:'5×30/25/20/15/12', vid:'chest_flat'},
+      {name:'上斜哑铃推', detail:'5×30/25/20/15/12', vid:'chest_incline'},
+      {name:'屈体哑铃夹胸', detail:'3×力竭', vid:'chest_fly'}
+    ]},
+    {muscle:'肱二头肌', items:[
+      {name:'哑铃单臂弯举', detail:'5×30/25/20/15/12', vid:'bicep_curl'},
+      {name:'斜凳哑铃弯举', detail:'5×30/25/20/15/12', vid:'bicep_hammer'},
+      {name:'杠铃游肘弯举', detail:'3×力竭', vid:'bicep_barbell'}
+    ]},
+    {muscle:'斜方肌', items:[
+      {name:'屈体哑铃缩肩', detail:'5×30/25/20/15/12', vid:'trap_shrug'}
+    ]},
+    {muscle:'背阔肌', items:[
+      {name:'宽引体（辅助）', detail:'5×力竭', vid:'back_pullup'},
+      {name:'屈体哑铃划船', detail:'5×30/25/20/15/12', vid:'back_row'},
+      {name:'钢线下拉', detail:'3×力竭', vid:'back_pulldown'},
+      {name:'坐姿划船', detail:'3×力竭', vid:'back_seated_row'},
+      {name:'单臂转体下拉', detail:'3×力竭', vid:'back_twist'}
+    ]},
+    {muscle:'竖脊肌', items:[
+      {name:'山羊挺身', detail:'5×30/25/20/15/12', vid:'back_ext'}
+    ]},
+    {muscle:'腹肌', items:[
+      {name:'元宝收腹', detail:'3×20/20/20', vid:'abs_vup'},
+      {name:'悬垂举腿', detail:'3×力竭', vid:'abs_legraise'}
+    ]}
+  ], cardio:{name:'游泳', detail:'30分钟'}, prep:['warmup','stretch_upper','foam_roller']},
+  1:{title:'B：股四头+臀+腘绳+小腿+三角肌+肱三头肌', groups:[
+    {muscle:'股四头肌', items:[
+      {name:'腿举机', detail:'5×30/25/20/15/12', vid:'quad_legpress', warn:'轻重量，注意右腿发力均匀'},
+      {name:'坐姿腿屈伸', detail:'5×30/25/20/15/12', vid:'quad_ext', warn:'右腿重量减半'}
+    ]},
+    {muscle:'臀肌', items:[
+      {name:'臀桥', detail:'5×30/25/20/15/12', vid:'glute_bridge', warn:'单腿左腿为主'}
+    ]},
+    {muscle:'腘绳肌', items:[
+      {name:'俯卧腿弯举', detail:'5×30/25/20/15/12', vid:'ham_curl'}
+    ]},
+    {muscle:'小腿', items:[
+      {name:'坐姿提踵', detail:'5×30/25/20/15/12', vid:'calf_raise'}
+    ]},
+    {muscle:'三角肌', items:[
+      {name:'史密斯肩上推举', detail:'5×30/25/20/15/12', vid:'shoulder_press'},
+      {name:'立式侧上举', detail:'5×20/20/20/15/15', vid:'shoulder_raise'},
+      {name:'三面飞鸟', detail:'3×力竭', vid:'shoulder_fly'}
+    ]},
+    {muscle:'肱三头肌', items:[
+      {name:'绳索臂屈伸', detail:'5×30/25/20/15/12', vid:'tricep_pushdown'},
+      {name:'屈体哑铃单臂屈伸', detail:'3×力竭', vid:'tricep_kickback'}
+    ]}
+  ], cardio:{name:'游泳', detail:'30分钟'}, prep:['warmup','stretch_lower','foam_roller']},
+  2:{title:'C：胸+肱二头肌+斜方+背阔肌', groups:[
+    {muscle:'胸大肌', items:[
+      {name:'杠铃平推', detail:'5×30/25/20/15/12', vid:'chest_flat'},
+      {name:'上斜哑铃推', detail:'5×30/25/20/15/12', vid:'chest_incline'},
+      {name:'屈体哑铃夹胸', detail:'3×力竭', vid:'chest_fly'}
+    ]},
+    {muscle:'肱二头肌', items:[
+      {name:'哑铃单臂弯举', detail:'5×30/25/20/15/12', vid:'bicep_curl'},
+      {name:'斜凳哑铃弯举', detail:'5×30/25/20/15/12', vid:'bicep_hammer'},
+      {name:'杠铃游肘弯举', detail:'3×力竭', vid:'bicep_barbell'}
+    ]},
+    {muscle:'斜方肌', items:[
+      {name:'屈体哑铃缩肩', detail:'5×30/25/20/15/12', vid:'trap_shrug'}
+    ]},
+    {muscle:'背阔肌', items:[
+      {name:'宽引体（辅助）', detail:'5×力竭', vid:'back_pullup'},
+      {name:'屈体哑铃划船', detail:'5×30/25/20/15/12', vid:'back_row'},
+      {name:'单臂转体下拉', detail:'3×力竭', vid:'back_twist'}
+    ]}
+  ], cardio:{name:'游泳', detail:'30分钟'}, prep:['warmup','stretch_upper']},
+  3:{title:'休息日', rest:true},
+  4:{title:'A：胸+肱二头肌+斜方+背+竖脊+腹', groups:[
+    {muscle:'胸大肌', items:[
+      {name:'杠铃平推', detail:'5×30/25/20/15/12', vid:'chest_flat'},
+      {name:'上斜哑铃推', detail:'5×30/25/20/15/12', vid:'chest_incline'},
+      {name:'屈体哑铃夹胸', detail:'3×力竭', vid:'chest_fly'}
+    ]},
+    {muscle:'肱二头肌', items:[
+      {name:'哑铃单臂弯举', detail:'5×30/25/20/15/12', vid:'bicep_curl'},
+      {name:'斜凳哑铃弯举', detail:'5×30/25/20/15/12', vid:'bicep_hammer'},
+      {name:'杠铃游肘弯举', detail:'3×力竭', vid:'bicep_barbell'}
+    ]},
+    {muscle:'斜方肌', items:[
+      {name:'屈体哑铃缩肩', detail:'5×30/25/20/15/12', vid:'trap_shrug'}
+    ]},
+    {muscle:'背阔肌', items:[
+      {name:'宽引体（辅助）', detail:'5×力竭', vid:'back_pullup'},
+      {name:'屈体哑铃划船', detail:'5×30/25/20/15/12', vid:'back_row'},
+      {name:'钢线下拉', detail:'3×力竭', vid:'back_pulldown'},
+      {name:'坐姿划船', detail:'3×力竭', vid:'back_seated_row'},
+      {name:'单臂转体下拉', detail:'3×力竭', vid:'back_twist'}
+    ]},
+    {muscle:'竖脊肌', items:[
+      {name:'山羊挺身', detail:'5×30/25/20/15/12', vid:'back_ext'}
+    ]},
+    {muscle:'腹肌', items:[
+      {name:'元宝收腹', detail:'3×20/20/20', vid:'abs_vup'},
+      {name:'悬垂举腿', detail:'3×力竭', vid:'abs_legraise'}
+    ]}
+  ], cardio:{name:'游泳', detail:'30分钟'}, prep:['warmup','stretch_upper','foam_roller']},
+  5:{title:'B：股四头+臀+腘绳+小腿+三角肌+肱三头肌', groups:[
+    {muscle:'股四头肌', items:[
+      {name:'腿举机', detail:'5×30/25/20/15/12', vid:'quad_legpress', warn:'轻重量，注意右腿发力均匀'},
+      {name:'坐姿腿屈伸', detail:'5×30/25/20/15/12', vid:'quad_ext', warn:'右腿重量减半'}
+    ]},
+    {muscle:'臀肌', items:[
+      {name:'臀桥', detail:'5×30/25/20/15/12', vid:'glute_bridge', warn:'单腿左腿为主'}
+    ]},
+    {muscle:'腘绳肌', items:[
+      {name:'俯卧腿弯举', detail:'5×30/25/20/15/12', vid:'ham_curl'}
+    ]},
+    {muscle:'小腿', items:[
+      {name:'坐姿提踵', detail:'5×30/25/20/15/12', vid:'calf_raise'}
+    ]},
+    {muscle:'三角肌', items:[
+      {name:'史密斯肩上推举', detail:'5×30/25/20/15/12', vid:'shoulder_press'},
+      {name:'立式侧上举', detail:'5×20/20/20/15/15', vid:'shoulder_raise'},
+      {name:'三面飞鸟', detail:'3×力竭', vid:'shoulder_fly'}
+    ]},
+    {muscle:'肱三头肌', items:[
+      {name:'绳索臂屈伸', detail:'5×30/25/20/15/12', vid:'tricep_pushdown'},
+      {name:'屈体哑铃单臂屈伸', detail:'3×力竭', vid:'tricep_kickback'}
+    ]}
+  ], cardio:{name:'游泳', detail:'30分钟'}, prep:['warmup','stretch_lower','foam_roller']},
+  6:{title:'C：胸+肱二头肌+斜方+背阔肌', groups:[
+    {muscle:'胸大肌', items:[
+      {name:'杠铃平推', detail:'5×30/25/20/15/12', vid:'chest_flat'},
+      {name:'上斜哑铃推', detail:'5×30/25/20/15/12', vid:'chest_incline'},
+      {name:'屈体哑铃夹胸', detail:'3×力竭', vid:'chest_fly'}
+    ]},
+    {muscle:'肱二头肌', items:[
+      {name:'哑铃单臂弯举', detail:'5×30/25/20/15/12', vid:'bicep_curl'},
+      {name:'斜凳哑铃弯举', detail:'5×30/25/20/15/12', vid:'bicep_hammer'},
+      {name:'杠铃游肘弯举', detail:'3×力竭', vid:'bicep_barbell'}
+    ]},
+    {muscle:'斜方肌', items:[
+      {name:'屈体哑铃缩肩', detail:'5×30/25/20/15/12', vid:'trap_shrug'}
+    ]},
+    {muscle:'背阔肌', items:[
+      {name:'宽引体（辅助）', detail:'5×力竭', vid:'back_pullup'},
+      {name:'屈体哑铃划船', detail:'5×30/25/20/15/12', vid:'back_row'},
+      {name:'单臂转体下拉', detail:'3×力竭', vid:'back_twist'}
+    ]}
+  ], cardio:{name:'游泳', detail:'30分钟'}, prep:['warmup','stretch_upper']}
+}
+};
+
+let currentLevel = localStorage.getItem('workout_level') || 'primary';
+function getPlan(){ return PLANS[currentLevel]; }
+
+const WEEK_DAYS = ['周一','周二','周三','周四','周五','周六','周日'];
+const PREP_LABELS = {warmup:'热身教学', stretch_upper:'上肢拉伸', stretch_lower:'下肢拉伸', foam_roller:'泡沫轴放松'};
+const ICO = {
+  moon:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  check:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  chevron:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+  play:'<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21"/></svg>',
+  flame:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
+  done:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',
+  refresh:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M16 16h5v5"/></svg>',
+  dumbbell:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 0"/><path d="m6.5 17.5 11 0"/><rect x="2" y="8" width="4.5" height="8" rx="1"/><rect x="17.5" y="8" width="4.5" height="8" rx="1"/><path d="M6.5 8v8"/><path d="M17.5 8v8"/></svg>',
+  clock:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  stretch:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M6 20l4-8 2 2 2-2 4 8"/><path d="M4 10h16"/></svg>',
+  roller:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="5" rx="2.5"/><path d="M12 11v3"/><path d="M8 14h8"/><path d="M9 14v3"/><path d="M15 14v3"/></svg>',
+  video:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>',
+};
+
+function getWeekMonday(){
+  const d=new Date(), day=d.getDay(), diff=d.getDate()-(day===0?6:day-1);
+  return new Date(d.setDate(diff));
+}
+function getKey(){ return 'workout_'+currentLevel+'_'+getWeekMonday().toISOString().slice(0,10); }
+function switchLevel(lv){
+  if(lv===currentLevel) return;
+  currentLevel=lv;
+  localStorage.setItem('workout_level',lv);
+  document.querySelectorAll('.level-btn').forEach(b=>b.classList.toggle('active',b.textContent.startsWith(lv==='primary'?'初':lv==='intermediate'?'中':'高')));
+  const p=PLANS[lv];
+  document.querySelector('.banner-sub').textContent=p.label;
+  document.getElementById('levelNote').textContent=p.note;
+  renderWeekCal();
+  renderDays();
+  updateProgress();
+}
+
+// 初始化等级按钮状态
+(function(){
+  document.querySelectorAll('.level-btn').forEach(b=>{
+    b.classList.toggle('active', (currentLevel==='primary'&&b.textContent.startsWith('初'))||(currentLevel==='intermediate'&&b.textContent.startsWith('中'))||(currentLevel==='advanced'&&b.textContent.startsWith('高')));
+  });
+  document.querySelector('.banner-sub').textContent=PLANS[currentLevel].label;
+  document.getElementById('levelNote').textContent=PLANS[currentLevel].note;
+})();
+function load(){ try{return JSON.parse(localStorage.getItem(getKey()))||{}}catch(e){return{}} }
+function save(d){ localStorage.setItem(getKey(),JSON.stringify(d)); }
+function ck(di,gi,ii){ return di+'_'+gi+'_'+ii; }
+function ckCardio(di){ return di+'_cardio'; }
+function ckTime(di){ return di+'_doneAt'; }
+
+function openVideo(key){
+  if(VIDEO[key]) window.open(VIDEO[key],'_blank');
+}
+
+function renderDays(){ renderAll(); }
+function renderWeekCal(){ renderCalendar(); }
+
+function calcDayProgress(di, dataOverride){
+  const plan=getPlan()[di], data=dataOverride||load();
+  if(!plan||plan.rest) return {total:0,checked:0};
+  let total=0,checked=0;
+  plan.groups.forEach((g,gi)=>{
+    g.items.forEach((_,ii)=>{total++;if(data[ck(di,gi,ii)])checked++;});
+  });
+  if(plan.cardio){total++;if(data[ckCardio(di)])checked++;}
+  return {total,checked};
+}
+
+function isDayFullyDone(di, dataOverride){
+  const plan=getPlan()[di]; if(!plan||plan.rest) return false;
+  const {total,checked}=calcDayProgress(di, dataOverride);
+  return total>0 && checked===total;
+}
+
+function renderCalendar(){
+  const container=document.getElementById('weekCal');
+  const monday=getWeekMonday();
+  const today=new Date(); const todayDay=today.getDay(); const todayIdx=todayDay===0?6:todayDay-1;
+  const data=load();
+
+  // 计算周日期
+  const dates=[];
+  for(let i=0;i<7;i++){ const d=new Date(monday); d.setDate(monday.getDate()+i); dates.push(d); }
+
+  let html='';
+  dates.forEach((d,i)=>{
+    const plan=getPlan()[i];
+    const isToday=i===todayIdx;
+    const isPast=i<todayIdx;
+    const isFuture=i>todayIdx;
+    const isRest=!!plan.rest;
+    const done=isDayFullyDone(i);
+
+    let cellClass='cal-cell';
+    if(isToday) cellClass+=' today';
+    if(isRest) cellClass+=' rest';
+    else if(done) cellClass+=' completed';
+    else if(isPast && !done) cellClass+=' missed';
+    else if(isFuture) cellClass+=' future';
+
+    const dayNum=d.getDate();
+    const desc=plan.rest?'休息':plan.title;
+    const label=WEEK_DAYS[i];
+
+    // 时间戳
+    let timeHtml='';
+    if(done && data[ckTime(i)]){
+      const ts=new Date(data[ckTime(i)]);
+      const h=ts.getHours().toString().padStart(2,'0');
+      const m=ts.getMinutes().toString().padStart(2,'0');
+      timeHtml='<div style="font-size:9px;color:var(--text-3);margin-top:2px">'+h+':'+m+'</div>';
+    }
+
+    html+='<div class="'+cellClass+'" onclick="scrollToDay('+i+')">'
+      +'<span class="cal-label">'+label+'</span>'
+      +'<span class="cal-date">'+dayNum+'</span>'
+      +'<span class="cal-desc" style="max-width:44px">'+desc+'</span>'
+      +timeHtml
+      +'</div>';
+  });
+  container.innerHTML=html;
+}
+
+function updateProgress(){
+  const today=new Date().getDay(), todayIdx=today===0?6:today-1;
+  const plan=getPlan()[todayIdx];
+  if(!plan||plan.rest){
+    document.getElementById('progressBar').style.width='0%';
+    document.getElementById('progressText').textContent='今日休息';
+    document.getElementById('progressPct').textContent='';
+    renderCalendar();
+    return;
+  }
+  const {total,checked}=calcDayProgress(todayIdx);
+  const pct=total?Math.round(checked/total*100):0;
+  document.getElementById('progressBar').style.width=pct+'%';
+  document.getElementById('progressText').textContent='今日完成 '+checked+'/'+total;
+  document.getElementById('progressPct').textContent=pct+'%';
+  renderCalendar();
+}
+
+function toggleCheck(di,gi,ii){
+  const data=load(), key=ck(di,gi,ii);
+  if(data[key]) delete data[key]; else data[key]=true;
+  if(isDayFullyDone(di, data) && !data[ckTime(di)]){
+    data[ckTime(di)]=new Date().toISOString();
+  }
+  save(data); renderDay(di); updateProgress(); renderCalendar();
+}
+function toggleCardio(di){
+  const data=load(), key=ckCardio(di);
+  if(data[key]) delete data[key]; else data[key]=true;
+  if(isDayFullyDone(di, data) && !data[ckTime(di)]){
+    data[ckTime(di)]=new Date().toISOString();
+  }
+  save(data); renderDay(di); updateProgress(); renderCalendar();
+}
+
+function renderDay(di){
+  const plan=getPlan()[di], data=load();
+  const card=document.getElementById('day-'+di);
+  const body=card.querySelector('.day-body');
+  const pctEl=card.querySelector('.day-pct');
+  const badgeEl=card.querySelector('.day-badge');
+
+  if(plan.rest){
+    body.innerHTML='<div class="day-body-inner"><div class="rest-card"><div class="rest-icon">'+ICO.moon+'</div><div class="rest-text">今天好好休息，让肌肉充分恢复</div></div></div>';
+    if(pctEl){ pctEl.textContent='休息'; pctEl.className='day-pct zero'; }
+    if(badgeEl){ badgeEl.style.background='#f0f0f0'; badgeEl.style.color='var(--text-3)'; }
+    return;
+  }
+
+  const {total,checked}=calcDayProgress(di,data);
+  const pct=total?Math.round(checked/total*100):0;
+  const isDone=total>0 && checked===total;
+
+  if(pctEl){
+    pctEl.textContent=isDone?ICO.check:(pct>0?pct+'%':'—');
+    pctEl.className='day-pct'+(pct===0&&!isDone?' zero':'');
+  }
+  if(badgeEl){
+    if(isDone){ badgeEl.style.background='var(--green)'; badgeEl.style.color='#fff'; }
+    else { badgeEl.style.background=''; badgeEl.style.color=''; }
+  }
+
+  // 热身准备区
+  let prepHtml='';
+  if(plan.prep && plan.prep.length){
+    const links=plan.prep.map(k=>'<a class="prep-link" href="#" onclick="openVideo(\''+k+'\');return false">'+PREP_LABELS[k]+'</a>').join('');
+    prepHtml='<div class="prep-section"><span class="prep-label">'+ICO.flame+' 训前准备</span><div class="prep-links">'+links+'</div></div>';
+  }
+
+  // 完成时间
+  let doneHtml='';
+  if(isDayFullyDone(di,data)){
+    const ts=data[ckTime(di)];
+    let tsStr='';
+    if(ts){
+      const d=new Date(ts);
+      const h=d.getHours().toString().padStart(2,'0');
+      const m=d.getMinutes().toString().padStart(2,'0');
+      tsStr=h+':'+m;
+    }
+    doneHtml='<div style="background:#E8F5EE;border-radius:8px;padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--green);font-weight:600">'
+      +'<span style="display:flex">'+ICO.done+'</span>'
+      +'<span>训练完成</span>'
+      +(tsStr?'<span style="display:flex;color:var(--text-3);margin-left:auto;font-size:12px;font-weight:400">'+ICO.clock+' '+tsStr+'</span>':'')
+      +'</div>';
+  }
+
+  // 动作组
+  let groupsHtml='';
+  plan.groups.forEach((g,gi)=>{
+    let itemsHtml='';
+    g.items.forEach((item,ii)=>{
+      const key=ck(di,gi,ii), isDone=!!data[key];
+      const warn=item.warn?'<span class="exercise-warn">'+item.warn+'</span>':'';
+      const vid=item.vid?'<button class="vid-btn" onclick="openVideo(\''+item.vid+'\')">'+ICO.video+' 教学</button>':'';
+      itemsHtml+='<div class="exercise-item'+(isDone?' done':'')+'"><input type="checkbox"'+(isDone?' checked':'')+' onchange="toggleCheck('+di+','+gi+','+ii+')">'
+        +'<div class="exercise-info"><span class="exercise-name">'+item.name+'</span><div class="exercise-meta"><span class="exercise-detail">'+item.detail+'</span>'+warn+'</div></div>'
+        +vid+'</div>';
+    });
+    groupsHtml+='<div class="muscle-group"><div class="muscle-label">'+g.muscle+'</div>'+itemsHtml+'</div>';
+  });
+
+  // 有氧
+  let cardioHtml='';
+  if(plan.cardio){
+    const key=ckCardio(di), isDone=!!data[key];
+    cardioHtml='<div class="muscle-group cardio"><div class="muscle-label">游泳有氧</div>'
+      +'<div class="exercise-item cardio-wrap'+(isDone?' done':'')+'"><input type="checkbox"'+(isDone?' checked':'')+' onchange="toggleCardio('+di+')">'
+      +'<div class="exercise-info"><span class="exercise-name">'+plan.cardio.name+'</span><div class="exercise-meta"><span class="exercise-detail">'+plan.cardio.detail+'</span></div></div></div></div>';
+  }
+
+  body.innerHTML='<div class="day-body-inner">'+doneHtml+prepHtml+groupsHtml+cardioHtml+'</div>';
+}
+
+function renderAll(){
+  const container=document.getElementById('days');
+  const today=new Date().getDay(), todayIdx=today===0?6:today-1;
+  container.innerHTML='';
+  WEEK_DAYS.forEach((dn,i)=>{
+    const plan=getPlan()[i], isToday=i===todayIdx, isRest=!!plan.rest;
+    const card=document.createElement('div');
+    card.className='day-card'+(isToday?' today open':'')+(isRest?' rest':'');
+    card.id='day-'+i;
+    card.innerHTML='<div class="day-header" onclick="this.parentElement.classList.toggle(\'open\')">'
+      +'<div class="day-badge">'+dn+'</div>'
+      +'<div class="day-info"><div class="day-title">'+plan.title+(isToday?' <span style="font-size:11px;color:var(--green);font-weight:500;margin-left:4px">今天</span>':'')+'</div>'
+      +(isRest?'':'<div class="day-desc">'+(plan.groups.map(g=>g.muscle).join('·'))+(plan.cardio?' · 游泳':'')+'</div>')
+      +'</div>'
+      +'<div class="day-status"><span class="day-pct zero">—</span><span class="day-arrow">'+ICO.chevron+'</span></div>'
+      +'</div><div class="day-body"></div>';
+    container.appendChild(card);
+    renderDay(i);
+  });
+  renderCalendar();
+}
+
+function scrollToDay(di){
+  const card=document.getElementById('day-'+di);
+  if(!card) return;
+  card.classList.add('open');
+  card.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function resetAll(){
+  if(!confirm('确定重置本周全部打卡？')) return;
+  const p=getPlan();
+  const d={};
+  for(const di in p) d[ckTime(di)]=false;
+  save(d);
+  renderDays();
+  updateProgress();
+}
+
+renderAll();
+updateProgress();
+renderCalendar();
+</script>
+</body>
+</html>
